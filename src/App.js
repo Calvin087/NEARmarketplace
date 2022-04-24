@@ -1,25 +1,75 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useCallback, useEffect, useState } from "react";
+import { Container, Nav } from "react-bootstrap";
+import "./App.css";
+import { getProducts } from "./utils/marketplace";
+import { login, logout as destroy, accountBalance } from "./utils/near";
+import Wallet from "./components/Wallet";
+import { Notification } from "./components/utils/Notifications";
+import Products from "./components/marketplace/Products";
+import Cover from "./components/utils/Cover";
+import coverImg from "./assets/img/sandwich.jpg";
 
-function App() {
+const App = function AppWrapper() {
+  const account = window.walletConnection.account();
+  const [balance, setBalance] = useState("0");
+  const getBalance = useCallback(async () => {
+    if (account.accountId) {
+      setBalance(await accountBalance());
+    }
+  });
+
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Notification />
+      {account.accountId ? (
+        <Container fluid="md">
+          <Nav className="justify-content-en pt-3 pb-5">
+            <Nav.Item>
+              <Wallet
+                address={account.accountId}
+                amount={balance}
+                symbol="NEAR"
+                destroy={destroy}
+              />
+            </Nav.Item>
+          </Nav>
+          <main>
+            <Products />
+          </main>
+        </Container>
+      ) : (
+        <Cover name="Street Food" login={login} coverImg={coverImg} />
+      )}
+    </>
   );
-}
+};
 
 export default App;
+
+// function App() {
+//   const account = window.walletConnection.account();
+//   const [products, setProducts] = useState([]);
+//   const fetchProducts = async () => {
+//     if (account.accountId) {
+//       setProducts(await getProducts());
+//     }
+//   };
+//   useEffect(() => {
+//     fetchProducts();
+//   }, []);
+//   return (
+//     <>
+//       {account.accountId ? (
+//         products.forEach((product) => console.log(product))
+//       ) : (
+//         <button onClick={login}>Log in with wallet</button>
+//       )}
+//     </>
+//   );
+// }
+
+// export default App;
